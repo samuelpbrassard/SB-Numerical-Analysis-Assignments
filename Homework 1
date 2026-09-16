@@ -1,0 +1,54 @@
+def bisect(f, a, b, tol): 
+    if f(a) * f(b) >= 0: 
+        raise ValueError("f(a)f(b)<0 not satisfied!") 
+
+    fa = f(a) 
+    fb = f(b) 
+    k = 0
+
+    while (b - a) / 2 > tol: 
+        c = (a + b) / 2 
+        fc = f(c) 
+        if fc == 0: 
+            break 
+        if fc * fa < 0:
+            b = c
+            fb = fc
+        else:
+            a = c
+            fa = fc 
+
+    xc = (a + b) / 2 
+    return xc
+
+def f(P, r):
+    return ((12 * P) / r) * ((1 + r / 12)**300 - 1) - 1000000
+
+for P in range(500, 1000, 50):
+    print(P, bisect(lambda r: f(P, r), 0.00000001, 1, 0.00000001))
+
+def fpi(x):
+    counter = 0
+    tol = 0.00000001
+    xVals = [0]
+    yVals = [x]
+
+    while True:
+        remember = x
+        x = 0.5 * (x + 9/x)
+        counter += 1
+
+        xVals = xVals + [counter]
+        yVals = yVals + [x]
+
+        if abs(x - remember) < tol:
+            break
+
+        if counter > 5000:
+            break
+    plt.plot(xVals,yVals)
+    plt.show()
+    
+    return x
+
+print(fpi(7))
