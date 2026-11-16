@@ -1,0 +1,92 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import CubicSpline
+
+playerCounts = [
+    293,266,271,314,298,254,264,256,246,269,
+    292,276,235,243,242,247,248,287,295,242,
+    249,242,254,256,313,305,237,242,237,245,
+    254,301,276,255,235,229,241,268,300,288,
+    225,250,284,938,708,681,608,480,435,390,
+    357,389,438,403,326,306,285,290,315,395,
+    354,288,273,269,264,280,335,323,284,268,
+    257,248,281,338,313,242,250,174,245,278,
+    327,296,225,225,220,211,234,272,268,236,
+    237,209,197,218,271,245,187,196,192,183,
+    197
+]
+
+x_daily = np.arange(101)
+y_daily = np.array(playerCounts, dtype=float)
+
+t = np.arange(0, 101, 5)
+y = y_daily[t]
+
+n = len(t)
+ndd = np.zeros((n, n))
+ndd[:, 0] = y
+
+for j in range(1, n):
+    for i in range(n-j):
+        ndd[i, j] = (
+            (ndd[i+1, j-1] - ndd[i, j-1])
+            / (t[i+j] - t[i])
+        )
+
+c = ndd[0, :]
+
+def runNDD(x):
+    result = np.zeros_like(np.asarray(x, dtype=float)) + c[-1]
+
+    for k in range(n-2, -1, -1):
+        result = c[k] + (x - t[k]) * result
+
+    return result
+
+p_daily = runNDD(x_daily)
+
+errors = np.abs(y_daily - p_daily)
+
+print("POLYNOMIAL INTERPOLATION")
+print("Maximum interpolation error:", np.max(errors))
+print("Day of maximum error:", np.argmax(errors))
+print("Minimum polynomial value:", np.min(p_daily))
+print("Maximum polynomial value:", np.max(p_daily))
+
+spline = CubicSpline(t, y, bc_type="natural")
+s_daily = spline(x_daily)
+
+spline_errors = np.abs(y_daily - s_daily)
+
+print("\nNATURAL CUBIC SPLINE")
+print("Maximum interpolation error:", np.max(spline_errors))
+print("Day of maximum error:", np.argmax(spline_errors))
+
+x_plot = np.linspace(0, 100, 2000)
+
+p_plot = runNDD(x_plot)
+s_plot = spline(x_plot)
+
+plt.figure(figsize=(11, 5))
+
+plt.plot(x_daily, y_daily, label="Daily data")
+plt.plot(x_plot, p_plot, label="Polynomial interpolation")
+plt.scatter(t, y, label="Interpolation nodes", zorder=3)
+
+plt.xlabel("Day")
+plt.ylabel("Players")
+plt.legend()
+plt.grid()
+plt.show()
+
+plt.figure(figsize=(11, 5))
+
+plt.plot(x_daily, y_daily, label="Daily data")
+plt.plot(x_plot, s_plot, label="Natural cubic spline")
+plt.scatter(t, y, label="Interpolation nodes", zorder=3)
+
+plt.xlabel("Day")
+plt.ylabel("Players")
+plt.legend()
+plt.grid()
+plt.show()
