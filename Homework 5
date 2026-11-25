@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+t = np.linspace(2*np.pi/60, 2*np.pi, 60)
+y = np.exp(np.sin(t - 1))
+
+np.random.seed(27)
+yn = y + 0.1*np.std(y)*np.random.randn(60)
+
+p = np.polyfit(t, yn, 6)
+
+yp = np.polyval(p, t)
+
+error1 = np.sqrt(np.mean((yn - yp)**2))
+
+print("Polynomial coefficients:")
+print(p[::-1])
+print("RMSE:", error1)
+
+M = np.zeros((60, 5))
+
+for i in range(60):
+    M[i, :] = [
+        1,
+        np.cos(t[i]),
+        np.sin(t[i]),
+        np.cos(2*t[i]),
+        np.sin(2*t[i])
+    ]
+
+d = np.linalg.solve(M.T @ M, M.T @ yn)
+
+yt = M @ d
+
+error2 = np.sqrt(np.mean((yn - yt)**2))
+
+print()
+print("Trigonometric coefficients:")
+print(d)
+print("RMSE:", error2)
+
+
+x = np.linspace(0, 2*np.pi, 300)
+
+plt.plot(t, yn, 'ko')
+plt.plot(x, np.polyval(p, x))
+
+trig = (d[0] + d[1]*np.cos(x) + d[2]*np.sin(x)
+        + d[3]*np.cos(2*x) + d[4]*np.sin(2*x))
+
+plt.plot(x, trig)
+
+plt.xlabel('t')
+plt.ylabel('y')
+plt.show()
